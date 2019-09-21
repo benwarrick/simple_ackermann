@@ -1,0 +1,59 @@
+<launch> 
+  <!-- these are the arguments you can pass this launch file, for example paused:=true --> 
+  <arg name="paused" default="true"/> 
+  <arg name="use_sim_time" default="true"/> 
+  <arg name="gui" default="true"/> 
+  <arg name="headless" default="false"/> 
+  <arg name="debug" default="false"/> 
+
+
+
+	<!-- Load joint controller configuration from YAML file to parameter server -->
+	<rosparam file="$(find ack_control)/config/ack_control.yaml" command="load" />
+
+	<!-- load the controllers -->
+	<node name="controller_spawner" pkg="controller_manager" type="spawner" respawn="false"
+    output="screen" ns="/ack" 
+    args="joint_rwh_position_controller joint_lwh_position_controller 
+      joint_state_controller joint_rw_velocity_controller joint_lw_velocity_controller"/>
+  
+
+  <!-- <node name="controller_spawner" pkg="controller_manager" type="spawner"
+          args="$(find ack_control)/config/ack_control.yaml"/>-->
+
+  <!-- Load the URDF into the ROS Parameter Server  -->
+  <param name="robot_description" 
+     command="$(find xacro)/xacro.py '$(find ack_description)/urdf/gem.xacro'" /> 
+  <!--
+  <param name="robot_description" textfile="$(find ack_description)/urdf/ackermann_1.urdf" /> -->
+
+  <include file="$(find gazebo_ros)/launch/empty_world.launch"> 
+    <arg name="world_name" value="$(find ack_gazebo)/worlds/empty.world"/> 
+    <arg name="debug" value="$(arg debug)" /> 
+    <arg name="gui" value="$(arg gui)" /> 
+    <arg name="paused" value="$(arg paused)"/> 
+    <arg name="use_sim_time" value="$(arg use_sim_time)"/> 
+    <arg name="headless" value="$(arg headless)"/> 
+  </include> 
+
+
+  <!-- convert joint states to TF transforms for rviz, etc -->
+  <node name="robot_state_publisher" pkg="robot_state_publisher" type="robot_state_publisher"
+    respawn="false" output="screen">
+    <!--<remap from="/joint_states" to="/ack/joint_states" />-->
+  </node>
+
+  <param name="use_gui" value="false" />
+  <!-- Start Joint state publisher node which will publish the joint values -->
+  <node name="joint_state_publisher" pkg="joint_state_publisher" type="joint_state_publisher" />
+ 
+
+  <!-- Run a python script to the send a service call to gazebo_ros to spawn a URDF robot --> 
+
+  <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen" args="-urdf -model ackermann_1 -param robot_description"/>  
+
+  <!-- Launch rviz 
+  <node name="rviz" pkg="rviz" type="rviz" 
+    args="-d $(find ack_description)/urdf.rviz" required="false" />-->
+
+</launch>  

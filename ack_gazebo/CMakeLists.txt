@@ -1,6 +1,20 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(ack_gazebo)
 
+find_package(catkin REQUIRED COMPONENTS
+  roscpp
+  std_msgs
+  genmsg
+)
+
+generate_messages(DEPENDENCIES std_msgs)
+
+add_executable(twist_to_ackermann src/twist_to_ackermann.cpp)
+target_link_libraries(twist_to_ackermann ${catkin_LIBRARIES})
+add_dependencies(twist_to_ackermann ack_gazebo_generate_messages_cpp)
+
+include_directories(include ${catkin_INCLUDE_DIRS})
+
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
 

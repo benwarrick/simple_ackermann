@@ -15,9 +15,6 @@ class TwistToAackermann {
         TwistToAackermann()
         {
         //Topic you want to publish 
-        //pubAD_ = n_.advertise<ackermann_msgs::AckermannDrive>("/ackermann_cmd", 1);
-        //pubADS_ = n_.advertise<ackermann_msgs::AckermannDriveStamped>("/rbcar_robot_control/command", 1);
-
         pubLeftWheelHinge_ = n_.advertise<std_msgs::Float64>("/ack/joint_lwh_position_controller/command", 1);
         pubRightWheelHinge_ = n_.advertise<std_msgs::Float64>("/ack/joint_rwh_position_controller/command", 1);
         pubLeftWheelRotate_ = n_.advertise<std_msgs::Float64>("/ack/joint_lw_velocity_controller/command", 1);
@@ -28,33 +25,36 @@ class TwistToAackermann {
         }
 
         void callback(const geometry_msgs::Twist& msg) {
-
             // Vehicle wheel base geometry. wheelBase is the distance between front
             // and back axles, track is the distance between left and right wheels.    
             double wheelBase = 1.753;
-            double track = 1.245; 
+            double track = 1.245;
+            double wheelRadius = 0.292;
+            double MaxR = 3.81; 
             std_msgs::Float64 lwh; 
             std_msgs::Float64 rwh;
             std_msgs::Float64 lwr;
             std_msgs::Float64 rwr;
-            double r = 0;  
+            double r = 0; 
+
 
             if (msg.angular.z==0 || msg.linear.x==0) {
                 lwh.data = 0;
                 rwh.data = 0;
-
+                lwr.data = linearToAngularVelocity(msg.linear.x, wheelRadius);
+                rwr.data = linearToAngularVelocity(msg.linear.x, wheelRadius);
             }
             else {
+                // The radius of the turn.
                 r = msg.linear.x/msg.angular.z; 
+                ROS_DEBUG("%f\n", r); 
+                //if (r<MaxR && r>0) r = MaxR;
+                //if (r>-MaxR && r<0) r = -MaxR;
+
                 lwh.data = atan(wheelBase/(r-(track/2)));
                 rwh.data = atan(wheelBase/(r+(track/2)));
-                lwr.data = (r-(track/2))*msg.angular.z;
-                rwr.data = (r+(track/2))*msg.angular.z; 
-
-
-                //ad.steering_angle = baseLength/(msg.linear.x/msg.angular.z);
-				//ad.steering_angle = atan(wheelBase/(msg.linear.x/msg.angular.z));
-            }
+                lwr.data = linearToAngularVelocity((r-(track/2))*msg.angular.z,wheelRadius);
+                rwr.data = linearToAngularVelocity((r+(track/2))*msg.angular.z,wheelRadius);             }
 
             //double R = static_cast<double>(msg.linear.x/msg.angular.z); 
             ROS_DEBUG("Test"); 
@@ -64,7 +64,6 @@ class TwistToAackermann {
             pubRightWheelHinge_.publish(rwh); 
             pubLeftWheelRotate_.publish(lwr); 
             pubRightWheelRotate_.publish(rwr); 
-
         }
     private:
         ros::NodeHandle n_;
@@ -73,15 +72,17 @@ class TwistToAackermann {
         ros::Publisher pubLeftWheelRotate_;
         ros::Publisher pubRightWheelRotate_; 
         ros::Subscriber sub_;
-};
-// void ackermanCallback(const ackermann_msgs::AckermannDrivePtr& str) {
-//     ros::init(argc, argv, "twist_to_ackermann");
-//     ros::NodeHandle n; 
 
-//     ros::Publisher ackermann_pub = 
-//         n.advertise<ackermann_msgs::AckermannDrive>("ackermann_cmd",1000);
-//     ros::Rate loop_rate(10); 
-// }
+    /*
+    ** The Gazebo JointVelocityController that spins the front wheels receives 
+    ** an angular velocity, Radians per second, so we use this method to 
+    ** convert the linear velocity into angular velocity by dividing it by
+    ** the wheel radius, giving radians per second instead of meters per second. 
+    */
+    float linearToAngularVelocity(float linearVelocity, float radius) {
+        return linearVelocity/radius;            
+    }
+};
 
 int main(int argc, char **argv) {
     ros::init(argc, argv, "twist_to_ackermann");
@@ -89,30 +90,5 @@ int main(int argc, char **argv) {
     TwistToAackermann SAPObject; 
     ros::spin(); 
 
-    //ros::NodeHandle n; 
-
-    // ros::Publisher ackermann_pub = 
-    //     n.advertise<ackermann_msgs::AckermannDrive>("ackermann_cmd",1000);
-    // ros::Rate loop_rate(10); 
-
-    //int count=0;
-
-    // while (ros::ok()) {
-    //     ackermann_msgs::AckermannDrive msg;
-
-    //     msg.steering_angle = 0.0; 
-    //     msg.steering_angle_velocity = 1.0;
-    //     msg.speed = 1.0; 
-    //     msg.acceleration = 1.0; 
-    //     msg.jerk = 0.0;  
-
-    //     //std::cout << msg.data.c_str(); 
-    //     //ROS_INFO("%s", msg.data.c_str()); 
-
-    //     ackermann_pub.publish(msg); 
-    //     ros::spinOnce(); 
-    //     loop_rate.sleep();
-    //     ++count; 
-    // }
     return 0; 
 }

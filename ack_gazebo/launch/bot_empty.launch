@@ -4,7 +4,7 @@
   <arg name="use_sim_time" default="true"/> 
   <arg name="gui" default="true"/> 
   <arg name="headless" default="false"/> 
-  <arg name="debug" default="false"/> 
+  <arg name="debug" default="true"/> 
 
 
 
@@ -49,8 +49,14 @@
  
 
   <!-- Run a python script to the send a service call to gazebo_ros to spawn a URDF robot --> 
-
   <node name="urdf_spawner" pkg="gazebo_ros" type="spawn_model" respawn="false" output="screen" args="-urdf -model ackermann_1 -param robot_description"/>  
+
+  <node name="twist_to_ackermann" pkg="ack_gazebo" type="twist_to_ackermann" >
+  </node>
+
+  <node name="viewer" pkg="image_view" type="image_view" respawn="false" output="screen">
+    <remap from="image" to="/camera1/image_raw" />
+  </node>
 
   <!-- Launch rviz 
   <node name="rviz" pkg="rviz" type="rviz" 

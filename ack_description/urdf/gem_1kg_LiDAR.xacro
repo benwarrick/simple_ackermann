@@ -1,0 +1,285 @@
+<?xml version="1.0"?>
+<robot name="gem" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+<!-- Vehicle Dimensions -->
+<xacro:property name="wheel_base_length" value="1.753"/>
+<xacro:property name="wheel_base_width" value="1.245"/>
+<xacro:property name="wheel_diameter" value="0.584"/><!--.292 -->
+<xacro:property name="wheel_thickness" value="0.178"/>
+
+<!-- Macros -->
+<xacro:macro name="wheel" params="name radius width material caster_offset mass">
+  <link name="${name}"> 		
+		<collision> 
+		  <origin xyz="0 0 0" rpy="0 1.5708 1.5708" />
+		  <geometry> 
+		   <cylinder length="${width}" radius="${radius}"/> 
+		  </geometry> 
+		</collision>
+		<visual> 
+		  <origin xyz="0 0 0" rpy="0 1.5708 1.5708" /> 
+		  <geometry> 
+			<cylinder length="${width}" radius="${radius}"/> 
+		  </geometry> 
+		  <material name="black"/> 
+		</visual>
+		<inertial> 
+		  <origin xyz="0 0 0" rpy="0 1.5708 1.5708" /> 
+		  <mass value="0.2"/> 
+		  <!--<cylinder_inertia m="0.2" r="0.3" h="0.1"/> -->
+      <cylinder_inirtia m="${mass}" r="${radius}" h="${width}" />
+      <!--<inertia ixx="0.23" ixy="0" ixz="0" iyy="0.23" iyz="0" izz="0.4"/>-->
+	  </inertial> 
+	</link> 
+  <gazebo reference="${name}"> 
+    <mu1 value="2.0"/> 
+    <mu2 value="2.0"/> 
+    <kp  value="10000000.0" /> 
+    <kd  value="1.0" /> 
+    <fdir1 value="0 1 0"/> 
+    <material>${material}</material> 
+  </gazebo>
+</xacro:macro>
+
+<xacro:macro name="wheel_steer" params="lr lr_reflect">
+  <xacro:wheel name="${lr}" radius="${wheel_diameter/2}" width="${wheel_thickness}" material="Gazebo/Blue" caster_offset="0" mass="6"/>
+  <xacro:wheel name="${lr}_assembly" radius="0.1" width="0.001" material="Gazebo/White" caster_offset="-.5" mass="0.5" />
+
+  <joint name="${lr}_hinge" type="revolute"> 
+    <parent link="chassis"/> 
+    <child link="${lr}_assembly"/> 
+    <origin xyz="${wheel_base_length/2} ${lr_reflect*(wheel_base_width/2)} ${wheel_diameter/2}" rpy="0 0 0" />  
+    <axis xyz="0 0 1" rpy="0 0 0" /> 
+    <limit effort="100" velocity="1" lower="-1" upper="1"/> 
+    <dynamics damping="0.0" friction="0.0"/> 
+  </joint> 
+  <joint name="${lr}_rotate" type="continuous"> 
+    <parent link="${lr}_assembly"/> 
+    <child link="${lr}"/> 
+    <origin xyz="0.0 ${lr_reflect*(wheel_thickness/2)} 0.0" rpy="0 0 0" />  
+    <axis xyz="0 1 0" rpy="0 0 0" /> 
+    <limit effort="100" velocity="50"/> 
+    <dynamics damping="0.0" friction="0.0"/> 
+  </joint>
+  <transmission name="trans_${lr}_hing">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name="${lr}_hinge">
+      <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+    </joint>
+    <actuator name="motor_${lr}_front">
+      <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+      <mechanicalReduction>1</mechanicalReduction>
+    </actuator>
+  </transmission>
+  <transmission name="trans_${lr}_rotate">
+    <type>transmission_interface/SimpleTransmission</type>
+    <joint name="${lr}_rotate">
+      <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+    </joint>
+    <actuator name="motor_${lr}_rotate">
+      <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+      <mechanicalReduction>1</mechanicalReduction>
+    </actuator>
+  </transmission>
+</xacro:macro> 
+
+<xacro:macro name="rear_wheel" params="lr lr_reflect">
+  <xacro:wheel name="${lr}" radius="${wheel_diameter/2}" width="${wheel_thickness}" material="Gazebo/Blue" caster_offset="0" mass="6" />
+  
+  <joint name="${lr}_rotate" type="continuous"> 
+    <parent link="chassis"/> 
+    <child link="${lr}"/> 
+    <origin xyz="${-wheel_base_length/2} ${lr_reflect*((wheel_base_width/2)+(wheel_thickness/2))} ${wheel_diameter/2}" rpy="0 0 0" />  
+    <axis xyz="0 1 0" rpy="0 0 0" /> 
+    <limit effort="0" velocity="0"/> 
+    <dynamics damping="0.0" friction="0.0"/> 
+  </joint>
+
+</xacro:macro>
+
+	<!--<xacro:macro name="box_inertia" params="m x y z">
+		<inertia  ixx="${m*(z*z+x*x)/12}" ixy = "0" ixz = "0"
+		          iyy="${m*(y*y+x*x)/12}" iyz = "0"
+		          izz="${m*(y*y+z*z)/12}" /> 
+	</xacro:macro>
+  <xacro:macro name="box_inertia" params="x y z mass">
+      <inertia ixx="${0.0833333 * mass * (y*y + z*z)}" ixy="0.0" ixz="0.0"
+        iyy="${0.0833333 * mass * (x*x + z*z)}" iyz="0.0"
+        izz="${0.0833333 * mass * (x*x + y*y)}" />
+  </xacro:macro>-->
+  <xacro:macro name="box_inertia" params="x y z m">
+		<inertia  ixx="${m*(y*y+z*z)/12}" ixy = "0" ixz = "0"
+		          iyy="${m*(x*x+z*z)/12}" iyz = "0"
+		          izz="${m*(x*x+z*z)/12}" /> 
+	</xacro:macro>
+  <xacro:macro name="cylinder_inirtia" params="m r h">
+    <inertia  ixx="${(m*((3*r*r)+(h*h)))/12}" ixy = "0" ixz = "0"
+              iyy="${(m*((3*r*r)+(h*h)))/12}" iyz = "0"
+              izz="${(m*r*r)/2}" />
+  </xacro:macro> 
+
+<!-- Macros End -->
+
+    <!-- Base link -->  
+  <link name="base_link">
+    <visual>  
+      <geometry>
+        <box size="0.01 0.01 0.01"/>
+      </geometry>
+    </visual>
+  </link> 
+
+	<!-- Chassis START-->  
+  <joint name="base_joint" type="fixed">
+    <parent link="base_link"/> 
+    <child link="chassis"/> 
+  </joint> 
+
+  <link name="chassis"> 
+    <collision> 
+      <origin xyz="0 0 ${wheel_diameter/2}" rpy="0 0 0"/> 
+      <geometry> 
+            <box size="${wheel_base_length} ${wheel_base_width-wheel_thickness} 0.1"/> 
+      </geometry> 
+    </collision> 
+    <visual> 
+      <origin xyz="0 0 0.3" rpy="0 0 0"/> 
+      <geometry> 
+         <box size="${wheel_base_length} ${wheel_base_width-wheel_thickness} 0.1"/> 
+      </geometry> 
+      <material name="orange"/> 
+    </visual> 
+    <inertial> 
+      <mass value="1"/> 
+      <origin xyz="0 0 0.3" rpy="0 0 0"/> 
+      <box_inertia x="${wheel_base_length}" y="${wheel_base_width-wheel_thickness}" z=".1" m="1" />
+      <!--<inertia ixx="0.4" ixy="0.1" ixz="0.1" iyy="0.4" iyz="0.1" izz="0.2"/>-->
+    </inertial> 
+  </link> 
+
+  <gazebo reference="chassis"> 
+    <!--Stiffness -->  
+    <kp>1000000.0</kp> 
+    <!--Dampening-->  
+    <kd>0.1</kd> 
+    <dampingFactor>0</dampingFactor> 
+    <material>Gazebo/White</material> 
+    <selfCollide>true</selfCollide> 
+    <turnGravityOff>false</turnGravityOff> 
+    <mu1 value="0.1"/> 
+    <mu2 value="0.1"/> 
+    <fdir1 value="0 0 0"/> 
+  </gazebo> 
+	<!-- Chassis END --> 
+
+  <xacro:wheel_steer lr="right_wheel" lr_reflect="-1" />
+  <xacro:wheel_steer lr="left_wheel" lr_reflect="1" />
+  <xacro:rear_wheel lr="right_wheel_rear" lr_reflect="-1" />
+  <xacro:rear_wheel lr="left_wheel_rear" lr_reflect="1" />
+
+  <gazebo>
+		<plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">
+		  <robotNamespace>/ack</robotNamespace>
+			<legacyModeNS>true</legacyModeNS>
+		</plugin>
+	</gazebo>
+
+
+  	<!-- Camera -->
+	<!-- You can adjust the camera angle with the p in rpy, measured in radians. -->
+	<!-- You can also increate the height of the camera by adding a number, in meters, -->
+	<!-- to the z in xyz. For example, to simulate a camera mounted on a 1/2 meter post, -->
+	<!-- we can replace the z value with ${wheelRadius+chassisHeight+0.5} --> 
+  <joint name="camera_joint" type="fixed">
+    <origin xyz="${wheel_base_length/2} 0 ${(wheel_diameter/2)+1}" rpy="0 1.0 0"/>
+    <parent link="chassis"/>
+    <child link="camera"/>
+  </joint>
+
+  <link name="camera">
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+	<box size=".05 .05 .05"/>
+      </geometry>
+    </collision>
+
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+	<box size=".05 .05 .05"/>
+      </geometry>
+      <material name="blue"/>
+    </visual>
+
+    <inertial>
+      <mass value="0.05" />
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <box_inertia x=".05" y=".05" z=".05" m="0.05" />
+    </inertial>
+  </link>
+
+ <gazebo reference="camera">
+  <material>Gazebo/Blue</material>
+  <sensor type="camera" name="camera1">
+      <update_rate>30.0</update_rate>
+      <camera name="head">
+        <horizontal_fov>1.3962634</horizontal_fov>
+        <image>
+          <width>1600</width>
+          <height>1600</height>
+          <format>R8G8B8</format>
+        </image>
+        <clip>
+          <near>0.02</near>
+          <far>300</far>
+        </clip>
+      </camera>
+      <plugin name="camera_controller" filename="libgazebo_ros_camera.so">
+        <alwaysOn>true</alwaysOn>
+        <updateRate>0.0</updateRate>
+        <cameraName>camera1</cameraName>
+        <imageTopicName>image_raw</imageTopicName>
+        <cameraInfoTopicName>camera_info</cameraInfoTopicName>
+        <frameName>camera_link</frameName>
+        <hackBaseline>0.07</hackBaseline>
+        <distortionK1>0.0</distortionK1>
+        <distortionK2>0.0</distortionK2>
+        <distortionK3>0.0</distortionK3>
+        <distortionT1>0.0</distortionT1>
+        <distortionT2>0.0</distortionT2>
+      </plugin>
+    </sensor>
+ </gazebo>
+
+  <xacro:include filename="$(find velodyne_description)/urdf/VLP-16.urdf.xacro"/>
+  <VLP-16 parent="mount" name="velodyne" topic="/velodyne_points">
+    <origin xyz="0 0 0.025" rpy="0 0 0" />
+  </VLP-16>
+
+  <joint name="mount" type="fixed" >
+   <parent link="chassis" />
+    <child link="mount" />
+    <origin xyz="0 0 1" rpy="0 0 0" />
+  </joint>
+  <link name="mount" >
+    <visual>
+      <geometry>
+        <box size="0.05 0.05 0.05" />
+      </geometry>
+    </visual>
+    <collision>
+      <geometry>
+        <box size="0.05 0.05 0.05" />
+      </geometry>
+    </collision>
+    <inertial>
+      <origin xyz="0 0 0"/>
+      <mass value="1"/>
+      <inertia ixx="1.0" ixy="0.0" ixz="0.0"
+               iyy="1.0" iyz="0.0" 
+               izz="1.0" />
+    </inertial>
+  </link>
+
+</robot>

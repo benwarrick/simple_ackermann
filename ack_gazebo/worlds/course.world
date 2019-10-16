@@ -1,0 +1,77 @@
+<?xml version="1.0" ?>
+<sdf version="1.4">
+  <!-- We use a custom world for the rrbot so that the camera angle is launched correctly -->
+
+  <world name="default">
+    <include>
+      <!--<uri>model://ground_plane</uri>-->
+      <uri>model://course_ground_plane</uri>
+    </include>
+
+    <!-- Global light source -->
+    <include>
+      <uri>model://sun</uri>
+    </include>
+
+    <!-- Focus camera on tall pendulum -->
+    <gui fullscreen='0'>
+      <camera name='user_camera'>
+        <pose>4.927360 -4.376610 3.740080 0.000000 0.275643 2.356190</pose>
+        <view_controller>orbit</view_controller>
+      </camera>
+    </gui>
+
+
+    <model name="stop_sign_2">
+      <include>
+        <uri>model://stop_sign</uri>
+        <pose>25.2 19.5 0.000000 0.000000 0.000000 0.000000</pose>
+      </include>
+    </model>
+    <model name="stop_sign_3">
+      <include>
+        <uri>model://stop_sign</uri>
+        <pose>14.8 24.5 0.000000 0.000000 0.000000 4.800000</pose>
+      </include>
+    </model>
+    <model name="stop_sign_4">
+      <include>
+        <uri>model://stop_sign</uri>
+        <pose>-8.5 34.7 0.000000 0.000000 0.000000 1.600000</pose>
+      </include>
+    </model>
+    <model name="stop_sign_5">
+      <include>
+        <uri>model://stop_sign</uri>
+        <pose>-12.5 18.8 0.000000 0.000000 0.000000 0.000000</pose>
+      </include>
+    </model>
+    
+    <model name="barrel_1">
+      <include>
+        <uri>model://construction_barrel</uri>
+        <pose>36 27 0.000000 0.000000 0.000000 0.000000</pose>
+      </include>
+    </model>
+    <model name="barrel_2">
+      <include>
+        <uri>model://construction_barrel</uri>
+        <pose>-18 10.3 0.000000 0.000000 0.000000 0.000000</pose>
+      </include>
+    </model>
+    <model name="barrel_3">
+      <include>
+        <uri>model://construction_barrel</uri>
+        <pose>-14.8 -12.9 0.000000 0.000000 0.000000 0.000000</pose>
+      </include>
+    </model>
+    
+    
+
+
+
+
+
+
+  </world>
+</sdf>

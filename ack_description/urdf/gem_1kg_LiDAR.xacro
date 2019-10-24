@@ -67,7 +67,7 @@
       <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
     </joint>
     <actuator name="motor_${lr}_front">
-      <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+      <!--<hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>-->
       <mechanicalReduction>1</mechanicalReduction>
     </actuator>
   </transmission>
@@ -77,7 +77,7 @@
       <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
     </joint>
     <actuator name="motor_${lr}_rotate">
-      <hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>
+      <!--<hardwareInterface>hardware_interface/EffortJointInterface</hardwareInterface>-->
       <mechanicalReduction>1</mechanicalReduction>
     </actuator>
   </transmission>
@@ -164,7 +164,7 @@
     <kd>0.1</kd> 
     <dampingFactor>0</dampingFactor> 
     <material>Gazebo/White</material> 
-    <selfCollide>true</selfCollide> 
+    <selfCollide>false</selfCollide> 
     <turnGravityOff>false</turnGravityOff> 
     <mu1 value="0.1"/> 
     <mu2 value="0.1"/> 
@@ -177,12 +177,7 @@
   <xacro:rear_wheel lr="right_wheel_rear" lr_reflect="-1" />
   <xacro:rear_wheel lr="left_wheel_rear" lr_reflect="1" />
 
-  <gazebo>
-		<plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">
-		  <robotNamespace>/ack</robotNamespace>
-			<legacyModeNS>true</legacyModeNS>
-		</plugin>
-	</gazebo>
+
 
 
   	<!-- Camera -->
@@ -280,6 +275,23 @@
                iyy="1.0" iyz="0.0" 
                izz="1.0" />
     </inertial>
-  </link>
+  </link><!---->
+
+    <gazebo>
+		<plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">
+		  <robotNamespace>/ack</robotNamespace>
+			<legacyModeNS>true</legacyModeNS>
+		</plugin>
+	</gazebo>
+
+  <!--<gazebo>
+    <plugin filename="libgazebo_ros_control.so" name="ros_control">
+      <robotNamespace>/ack</robotNamespace>
+      <robotParam>/ack/gem</robotParam>
+      <controlPeriod>0.001</controlPeriod>
+      <robotSimType>gazebo_ros_control/DefaultRobotHWSim</robotSimType>
+      <legacyModeNS>true</legacyModeNS>
+    </plugin>    
+  </gazebo>-->
 
 </robot>

@@ -58,8 +58,8 @@
     <remap from="image" to="/camera1/image_raw" />
   </node>
 
-  <!-- Launch rviz 
+  <!-- Launch rviz -->
   <node name="rviz" pkg="rviz" type="rviz" 
-    args="-d $(find ack_description)/urdf.rviz" required="false" />-->
+    args="-d $(find ack_gazebo)/gem_LiDAR.rviz" required="false" />
 
 </launch>  
